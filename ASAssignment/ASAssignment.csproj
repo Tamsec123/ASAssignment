@@ -72,7 +72,9 @@
     <Content Include="App_Data\AppSecAssignment_log.ldf">
       <DependentUpon>AppSecAssignment.mdf</DependentUpon>
     </Content>
+    <Content Include="ChangePassword.aspx" />
     <Content Include="CustomizedError\GenericError.html" />
+    <Content Include="CustomizedError\HTTP403.html" />
     <Content Include="CustomizedError\HTTP404.html" />
     <Content Include="CustomizedError\HTTP500.html" />
     <Content Include="Global.asax" />
@@ -87,6 +89,13 @@
     </Compile>
     <Compile Include="AfterLogin.aspx.designer.cs">
       <DependentUpon>AfterLogin.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="ChangePassword.aspx.cs">
+      <DependentUpon>ChangePassword.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="ChangePassword.aspx.designer.cs">
+      <DependentUpon>ChangePassword.aspx</DependentUpon>
     </Compile>
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

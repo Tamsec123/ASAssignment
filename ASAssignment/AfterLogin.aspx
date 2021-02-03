@@ -9,6 +9,9 @@
         .auto-style1 {
             margin-left: 369px;
         }
+        .auto-style2 {
+            margin-left: 65px;
+        }
     </style>
 </head>
 <body>
@@ -20,7 +23,8 @@
         <br />
         <br />
         <br />
-        <asp:Button ID="btn_Logout" OnClick="LogMeOut" runat="server" CssClass="auto-style1" Text="Logout" />
+        <asp:Button ID="btn_Logout" OnClick="LogMeOut" runat="server" CssClass="auto-style1" Text="Logout" Width="70px" />
+        <asp:Button ID="btn_ChangePassword" runat="server" CssClass="auto-style2" OnClick="btn_ChangePassword_Click" Text="Change Password" />
     </form>
 </body>
 </html>

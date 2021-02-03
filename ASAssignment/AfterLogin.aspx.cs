@@ -9,8 +9,14 @@ namespace ASAssignment
 {
     public partial class AfterLogin : System.Web.UI.Page
     {
+        string email;
         protected void Page_Load(object sender, EventArgs e)
         {
+            if (Request.QueryString["email"] != "")
+            {
+                email = Request.QueryString["email"];
+            }
+
             if (Session["IsLoggedIn"] != null && Session["AuthenticationToken"] != null && Request.Cookies["AuthenticationToken"] != null)
             {
                 if (!Session["AuthenticationToken"].ToString().Equals(Request.Cookies["AuthenticationToken"].Value))
@@ -49,6 +55,13 @@ namespace ASAssignment
                 Response.Cookies["AuthenticationToken"].Value = string.Empty;
                 Response.Cookies["AuthenticationToken"].Expires = DateTime.Now.AddMonths(-20);
             }
+        }
+
+
+
+        protected void btn_ChangePassword_Click(object sender, EventArgs e)
+        {
+            Response.Redirect("ChangePassword.aspx?email=" + HttpUtility.HtmlEncode(email), false);
         }
     }
 }

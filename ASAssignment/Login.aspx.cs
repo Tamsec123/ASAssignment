@@ -38,8 +38,6 @@ namespace ASAssignment
                     {
                         string responseJson = streamRead.ReadToEnd();
 
-                        lbl_gScore.Text = responseJson.ToString();
-
                         JavaScriptSerializer jss = new JavaScriptSerializer();
 
                         MyObject jsonObject = jss.Deserialize<MyObject>(responseJson);
@@ -74,7 +72,6 @@ namespace ASAssignment
                 SHA512Managed hashh = new SHA512Managed();
                 string dbh = getDBH(email);
                 string dbs = getDBS(email);
-                lbl_gScore.Text = dbh + "," + dbs;
 
                 Session["Error"] = "Email or password is invalid, try again";
                 try
@@ -94,7 +91,7 @@ namespace ASAssignment
 
                             Response.Cookies.Add(new HttpCookie("AuthenticationToken", guid));
 
-                            Response.Redirect("AfterLogin.aspx", false);
+                            Response.Redirect("AfterLogin.aspx?email="+ HttpUtility.HtmlEncode(email), false);
 
 
                         }

@@ -20,6 +20,7 @@ namespace ASAssignment
         static string hashFinal;
         static string salt;
         DateTime dt = new DateTime();
+        DateTime expDate;
         protected void Page_Load(object sender, EventArgs e)
         {
 
@@ -28,7 +29,11 @@ namespace ASAssignment
 
         protected void btn_submit_Click(object sender, EventArgs e)
         {
-            
+            lbl_msg.Text = "";
+            bool rs = true;
+            rs = DateTime.TryParse(tbExpDate.Text, out expDate);
+
+
             if (tbFirstName.Text == "")
             {
                 lbl_msg.Text += "First name cannot be empty <br/>";
@@ -37,17 +42,17 @@ namespace ASAssignment
             {
                 lbl_msg.Text += "Last name cannot be empty <br/>";
             }
-            if (tbCardNumber.Text == "")
+            if (tbCardNumber.Text == "" || tbCardNumber.Text.Length > 16 || tbCardNumber.Text.Length < 16)
             {
-                lbl_msg.Text += "Card number cannot be empty <br/>";
+                lbl_msg.Text += "Card number is invalid <br/>";
             }
-            if (tbExpDate.Text == "")
+            if (tbExpDate.Text == "" || rs == false)
             {
-                lbl_msg.Text += "Expiry date cannot be empty <br/>";
+                lbl_msg.Text += "Expiry date is invalid <br/>";
             }
-            if (tbCVV.Text == "")
+            if (tbCVV.Text == "" || tbCVV.Text.Length > 3 || tbCVV.Text.Length < 3)
             {
-                lbl_msg.Text += "CVV cannot be empty <br/>";
+                lbl_msg.Text += "CVV is invalid <br/>";
             }
             if (tbEmail.Text == "")
             {
@@ -56,6 +61,14 @@ namespace ASAssignment
             if (tbPassword.Text == "")
             {
                 lbl_msg.Text += "Password cannot be empty <br/>";
+            }
+            if (tbPasswordCfm.Text == "")
+            {
+                lbl_msg.Text += "Confirm Password Cannot be empty <br/>";
+            }
+            if (tbPassword.Text != tbPasswordCfm.Text)
+            {
+                lbl_msg.Text += "Password and Confirm Password are not the same <br/>";
             }
             if (tbPasswordCfm.Text == "")
             {
@@ -86,8 +99,6 @@ namespace ASAssignment
 
                 hashFinal = Convert.ToBase64String(hashWithSalt);
 
-                RijndaelManaged cipher = new RijndaelManaged();
-                cipher.GenerateKey();
 
 
                 createUser();
@@ -147,7 +158,7 @@ namespace ASAssignment
                             command.Parameters.AddWithValue("@firstName", tbFirstName.Text.Trim());
                             command.Parameters.AddWithValue("@lastName", tbLastName.Text.Trim());
                             command.Parameters.AddWithValue("@cardNumber", Convert.ToBase64String(dataEncrypt(tbCardNumber.Text.Trim())));
-                            command.Parameters.AddWithValue("@expiryDate", Convert.ToBase64String(dataEncrypt(tbExpDate.Text.Trim())));
+                            command.Parameters.AddWithValue("@expiryDate", Convert.ToBase64String(dataEncrypt(expDate.ToString())));
                             command.Parameters.AddWithValue("@CVV", Convert.ToBase64String(dataEncrypt(tbCVV.Text.Trim())));
                             command.Parameters.AddWithValue("@password", hashFinal);
                             command.Parameters.AddWithValue("@salt", salt);
@@ -173,7 +184,6 @@ namespace ASAssignment
             {
                 RijndaelManaged ciph = new RijndaelManaged();
                 ICryptoTransform encryptTransform = ciph.CreateEncryptor();
-                //ICryptoTransform decryptTransform = cipher.CreateDecryptor();
                 byte[] plainText = Encoding.UTF8.GetBytes(data);
                 cipherText = encryptTransform.TransformFinalBlock(plainText, 0,
                plainText.Length);

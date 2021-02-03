@@ -126,7 +126,7 @@
             }
 
             document.getElementById("lbl_pwdchecker").innerHTML = "Excellent!";
-            document.getElementById("lbl_pwdchecker").style.color = "Blue";
+            document.getElementById("lbl_pwdchecker").style.color = "Green";
         }
     </script>
 </html>

@@ -40,7 +40,6 @@
         
         <br />
         <asp:Label ID="lblError" runat="server"></asp:Label>
-        <asp:Label ID="lbl_gScore" runat="server"></asp:Label>
     </form>
     <script>
         grecaptcha.ready(function () {
