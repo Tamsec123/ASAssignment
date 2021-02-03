@@ -149,7 +149,7 @@ namespace ASAssignment
             {
                 using (SqlConnection conn = new SqlConnection(connectionString))
                 {
-                     using (SqlCommand command = new SqlCommand("INSERT INTO user_info VALUES(@Email,@firstName,@lastName,@cardNumber,@expiryDate,@CVV,@password,@salt,@dateOfBirth)"))
+                     using (SqlCommand command = new SqlCommand("INSERT INTO user_info VALUES(@Email,@firstName,@lastName,@cardNumber,@expiryDate,@CVV,@password,@salt,@dateOfBirth,@accountStat)"))
                     {
                         using (SqlDataAdapter sqlData = new SqlDataAdapter())
                         {
@@ -163,6 +163,7 @@ namespace ASAssignment
                             command.Parameters.AddWithValue("@password", hashFinal);
                             command.Parameters.AddWithValue("@salt", salt);
                             command.Parameters.AddWithValue("@dateOfBirth", dt);
+                            command.Parameters.AddWithValue("@accountStat", 1);
                             command.Connection = conn;
                             conn.Open();
                             command.ExecuteNonQuery();

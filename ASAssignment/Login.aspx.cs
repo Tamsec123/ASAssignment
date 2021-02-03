@@ -74,40 +74,59 @@ namespace ASAssignment
                 string dbs = getDBS(email);
 
                 Session["Error"] = "Email or password is invalid, try again";
-                try
+                if (statCheck(email) == "1")
                 {
-                    if (dbs != null && dbs.Length > 0 && dbh != null && dbh.Length > 0)
+
+
+                    try
                     {
-                        string pwordWithSalt = pword + dbs;
-                        byte[] hashWithSalt = hashh.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
-                        string emailHash = Convert.ToBase64String(hashWithSalt);
-
-                        if (emailHash.Equals(dbh))
+                        if (dbs != null && dbs.Length > 0 && dbh != null && dbh.Length > 0)
                         {
-                            Session["IsLoggedIn"] = tb_email.Text.Trim();
+                            string pwordWithSalt = pword + dbs;
+                            byte[] hashWithSalt = hashh.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
+                            string emailHash = Convert.ToBase64String(hashWithSalt);
 
-                            string guid = Guid.NewGuid().ToString();
-                            Session["AuthenticationToken"] = guid;
+                            if (emailHash.Equals(dbh))
+                            {
+                                Session["IsLoggedIn"] = tb_email.Text.Trim();
 
-                            Response.Cookies.Add(new HttpCookie("AuthenticationToken", guid));
+                                string guid = Guid.NewGuid().ToString();
+                                Session["AuthenticationToken"] = guid;
 
-                            Response.Redirect("AfterLogin.aspx?email="+ HttpUtility.HtmlEncode(email), false);
+                                Response.Cookies.Add(new HttpCookie("AuthenticationToken", guid));
+
+                                Response.Redirect("AfterLogin.aspx?email=" + HttpUtility.HtmlEncode(email), false);
 
 
-                        }
-                        else
-                        {
-                            Response.Redirect("Login.aspx?error=error", false);
+                            }
+                            else
+                            {
+                                Session["AttemptCount"] = Convert.ToInt32(Session["AttemptCount"]) + 1;
+                                if (Convert.ToInt32(Session["AttemptCount"]) >= 3)
+                                {
+                                    AccountLockout(email);
+                                }
+                                else
+                                {
+                                    Response.Redirect("Login.aspx?error=error", false);
+                                }
+
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+
+                        throw new Exception(ex.ToString());
+                    }
+                    finally { }
+
                 }
-                catch (Exception ex)
+                else
                 {
-
-                    throw new Exception(ex.ToString());
+                    lblError.Text = "Your account has been locked out";
+                    lblError.ForeColor = System.Drawing.Color.Red;
                 }
-                finally { }
-
             }
         }
         protected string getDBH(string email)
@@ -176,5 +195,58 @@ namespace ASAssignment
             finally { connection.Close(); }
             return salt;
         }
+
+        private string AccountLockout(string email)
+        {
+            SqlConnection conn = new SqlConnection(connectionString);
+            string sqlq = "UPDATE user_info SET accountStat=0 WHERE Email=@Email";
+            SqlCommand command = new SqlCommand(sqlq, conn);
+            command.Parameters.AddWithValue("@Email", email);
+            try
+            {
+                conn.Open();
+                command.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.ToString());
+            }
+            finally { conn.Close(); }
+            return null;
+        }
+
+        private string statCheck(string email)
+        {
+            string result = "1";
+            SqlConnection conn = new SqlConnection(connectionString);
+            string sqlq = "SELECT accountStat FROM user_info WHERE Email=@Email";
+            SqlCommand command = new SqlCommand(sqlq, conn);
+            command.Parameters.AddWithValue("@Email", email);
+            try
+            {
+                conn.Open();
+                using (SqlDataReader read = command.ExecuteReader())
+                {
+                    while (read.Read())
+                    {
+                        if (read["accountStat"] != null)
+                        {
+                            if (read["accountStat"] != DBNull.Value)
+                            {
+                                result = read["accountStat"].ToString();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.ToString());
+            }
+            finally { conn.Close(); }
+            return result;
+        }
     }
-}
+    }
