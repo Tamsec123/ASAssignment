@@ -126,6 +126,7 @@ namespace ASAssignment
                 {
                     lblError.Text = "Your account has been locked out";
                     lblError.ForeColor = System.Drawing.Color.Red;
+                    btn_Recover.Visible = true;
                 }
             }
         }
@@ -247,6 +248,12 @@ namespace ASAssignment
             }
             finally { conn.Close(); }
             return result;
+        }
+
+        protected void btn_Recover_Click(object sender, EventArgs e)
+        {
+            string email = HttpUtility.HtmlEncode(tb_email.Text.ToString().Trim());
+            Response.Redirect("RecoverAccount.aspx?email=" + email, false);
         }
     }
     }

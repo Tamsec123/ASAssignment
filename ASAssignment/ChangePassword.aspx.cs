@@ -29,6 +29,7 @@ namespace ASAssignment
                 lblMessage.Text = "Password not valid. Please try again.";
                 lblMessage.ForeColor = System.Drawing.Color.Red;
             }
+            
         }
 
         protected void btn_Submit_Click(object sender, EventArgs e)
@@ -44,6 +45,8 @@ namespace ASAssignment
             {
                 if (dbs != null && dbs.Length > 0 && dbh != null && dbh.Length > 0)
                 {
+                    DateTime resetTime = new DateTime();
+                    int existOrNot = 1;
                     string pwordWithSalt = pword + dbs;
                     byte[] hashWithSalt = hashh.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
                     string emailHash = Convert.ToBase64String(hashWithSalt);
@@ -65,37 +68,86 @@ namespace ASAssignment
 
                     hashFinal = Convert.ToBase64String(hashingWithSalt);
 
-                    if (emailHash.Equals(dbh))
+                    SqlConnection connect = new SqlConnection(connectionString);
+                    string sql = "select pwResetTime FROM user_info WHERE Email=@Email";
+                    SqlCommand comm = new SqlCommand(sql, connect);
+                    comm.Parameters.AddWithValue("@Email", email);
+                    try
                     {
-                        SqlConnection connection = new SqlConnection(connectionString);
-                        string sqlq = "UPDATE user_info SET password=@NewPassword, salt=@NewSalt WHERE Email=@Email";
-                        SqlCommand command = new SqlCommand(sqlq, connection);
-                        command.Parameters.AddWithValue("@Email", email);
-                        command.Parameters.AddWithValue("@NewPassword", hashFinal);
-                        command.Parameters.AddWithValue("@NewSalt", salt);
-                        try
+                        connect.Open();
+                        using (SqlDataReader read = comm.ExecuteReader())
                         {
-                            //command.Connection = connection;
-                            connection.Open();
-                            command.ExecuteNonQuery();
-                            connection.Close();
-                            lblMessage.Text = "Password has been changed successfully";
-                            lblMessage.ForeColor = System.Drawing.Color.Green;
+                            while (read.Read())
+                            {
+                                if (read["pwResetTime"] != null)
+                                {
+                                    if (read["pwResetTime"] != DBNull.Value)
+                                    {
+                                        resetTime = Convert.ToDateTime(read["pwResetTime"].ToString());
+                                    }
+                                    else
+                                    {
+                                        existOrNot = 0;
+                                    }
+                                }
+                                else
+                                {
+                                    existOrNot = 0;
+                                }
+                            }
                         }
-                        catch (SqlException ex)
+                    }
+                    catch (Exception ex)
+                    {
+
+                        throw new Exception(ex.ToString());
+                    }
+                    finally { connect.Close(); }
+                    
+                    if (timeDiff(email) >= 5 || existOrNot == 0)
+                    {
+
+
+                        if (emailHash.Equals(dbh))
                         {
+                            SqlConnection connection = new SqlConnection(connectionString);
+                            string sqlq = "UPDATE user_info SET password=@NewPassword, salt=@NewSalt,pwResetTime=@pwResetTime WHERE Email=@Email";
+                            SqlCommand command = new SqlCommand(sqlq, connection);
+                            command.Parameters.AddWithValue("@Email", email);
+                            command.Parameters.AddWithValue("@NewPassword", hashFinal);
+                            command.Parameters.AddWithValue("@NewSalt", salt);
+                            command.Parameters.AddWithValue("@pwResetTime", DateTime.Now);
+                            try
+                            {
+                                //command.Connection = connection;
+                                connection.Open();
+                                command.ExecuteNonQuery();
+                                connection.Close();
+                                lblMessage.Text = "Password has been changed successfully";
+                                lblMessage.ForeColor = System.Drawing.Color.Green;
+                            }
+                            catch (SqlException ex)
+                            {
 
-                            lblMessage.Text = "Something went wrong, please try again.";
+                                lblMessage.Text = "Something went wrong, please try again.";
+                            }
+
+
                         }
-
-
+                        else
+                        {
+                            Response.Redirect("ChangePassword.aspx?error=error", false);
+                        }
                     }
                     else
                     {
-                        Response.Redirect("ChangePassword.aspx?error=error", false);
+                        lblMessage.Text = "You have changed password recently, please try again in " + timeDiff(email).ToString() + "minutes";
+                        lblMessage.ForeColor = System.Drawing.Color.Red;
                     }
                 }
+                
             }
+
             catch (Exception ex)
             {
 
@@ -175,6 +227,42 @@ namespace ASAssignment
         protected void btn_BackToLogin_Click(object sender, EventArgs e)
         {
             Response.Redirect("Login.aspx", false);
+        }
+
+        protected double timeDiff(string email)
+        {
+            DateTime resetTime = new DateTime();
+            TimeSpan diff = new TimeSpan();
+            SqlConnection conn = new SqlConnection(connectionString);
+            string sqlq = "select pwResetTime FROM user_info WHERE Email=@Email";
+            SqlCommand command = new SqlCommand(sqlq, conn);
+            command.Parameters.AddWithValue("@Email", email);
+            try
+            {
+                conn.Open();
+                using (SqlDataReader read = command.ExecuteReader())
+                {
+                    while (read.Read())
+                    {
+                        if (read["pwResetTime"] != null)
+                        {
+                            if (read["pwResetTime"] != DBNull.Value)
+                            {
+                                resetTime = Convert.ToDateTime(read["pwResetTime"].ToString());
+                                diff = DateTime.Now.Subtract(resetTime);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.ToString());
+            }
+            finally { conn.Close(); }
+            return diff.TotalMinutes;
+
         }
     }
 }

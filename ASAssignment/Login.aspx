@@ -17,6 +17,9 @@
         .auto-style3 {
             margin-left: 293px;
         }
+        .auto-style4 {
+            margin-left: 108px;
+        }
     </style>
     <script src="https://www.google.com/recaptcha/api.js?render=6LfTIkgaAAAAAJ-jIRWCvlcGgjD_q6EQIK3_jaIv"></script>
 </head>
@@ -37,6 +40,8 @@
         <br />
         <br />
         <asp:Button ID="btn_login" runat="server" CssClass="auto-style3" Text="Login" OnClick="btn_login_Click" />
+        
+        <asp:Button ID="btn_Recover" runat="server" CssClass="auto-style4" Visible="false" Text="Recover account" OnClick="btn_Recover_Click" />
         
         <br />
         <asp:Label ID="lblError" runat="server"></asp:Label>
