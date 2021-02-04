@@ -164,7 +164,7 @@ namespace ASAssignment
                             command.Parameters.AddWithValue("@salt", salt);
                             command.Parameters.AddWithValue("@dateOfBirth", dt);
                             command.Parameters.AddWithValue("@accountStat", 1);
-                            command.Parameters.AddWithValue("@pwResetTime", DBNull.Value);
+                            command.Parameters.AddWithValue("@pwResetTime", DateTime.Now);
                             command.Connection = conn;
                             conn.Open();
                             command.ExecuteNonQuery();

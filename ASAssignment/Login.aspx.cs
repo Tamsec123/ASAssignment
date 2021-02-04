@@ -65,6 +65,7 @@ namespace ASAssignment
 
         protected void btn_login_Click(object sender, EventArgs e)
         {
+            
             if (CaptchaValidation())
             {
                 string pword = HttpUtility.HtmlEncode(tb_password.Text.ToString().Trim());
@@ -76,51 +77,62 @@ namespace ASAssignment
                 Session["Error"] = "Email or password is invalid, try again";
                 if (statCheck(email) == "1")
                 {
-
-
-                    try
+                    if (timeDiff(email) * (-1) < 15)
                     {
-                        if (dbs != null && dbs.Length > 0 && dbh != null && dbh.Length > 0)
+
+
+
+                        try
                         {
-                            string pwordWithSalt = pword + dbs;
-                            byte[] hashWithSalt = hashh.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
-                            string emailHash = Convert.ToBase64String(hashWithSalt);
-
-                            if (emailHash.Equals(dbh))
+                            if (dbs != null && dbs.Length > 0 && dbh != null && dbh.Length > 0)
                             {
-                                Session["IsLoggedIn"] = tb_email.Text.Trim();
+                                string pwordWithSalt = pword + dbs;
+                                byte[] hashWithSalt = hashh.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
+                                string emailHash = Convert.ToBase64String(hashWithSalt);
 
-                                string guid = Guid.NewGuid().ToString();
-                                Session["AuthenticationToken"] = guid;
-
-                                Response.Cookies.Add(new HttpCookie("AuthenticationToken", guid));
-
-                                Response.Redirect("AfterLogin.aspx?email=" + HttpUtility.HtmlEncode(email), false);
-
-
-                            }
-                            else
-                            {
-                                Session["AttemptCount"] = Convert.ToInt32(Session["AttemptCount"]) + 1;
-                                if (Convert.ToInt32(Session["AttemptCount"]) >= 3)
+                                if (emailHash.Equals(dbh))
                                 {
-                                    AccountLockout(email);
+                                    Session["IsLoggedIn"] = tb_email.Text.Trim();
+
+                                    string guid = Guid.NewGuid().ToString();
+                                    Session["AuthenticationToken"] = guid;
+
+                                    Response.Cookies.Add(new HttpCookie("AuthenticationToken", guid));
+
+                                    Response.Redirect("AfterLogin.aspx?email=" + HttpUtility.HtmlEncode(email), false);
+
+
                                 }
                                 else
                                 {
-                                    Response.Redirect("Login.aspx?error=error", false);
-                                }
+                                    Session["AttemptCount"] = Convert.ToInt32(Session["AttemptCount"]) + 1;
+                                    if (Convert.ToInt32(Session["AttemptCount"]) >= 3)
+                                    {
+                                        AccountLockout(email);
+                                    }
+                                    else
+                                    {
+                                        Response.Redirect("Login.aspx?error=error", false);
+                                    }
 
+                                }
                             }
                         }
+                        catch (Exception ex)
+                        {
+
+                            throw new Exception(ex.ToString());
+                        }
+                        finally { }
+
                     }
-                    catch (Exception ex)
+                    else
                     {
-
-                        throw new Exception(ex.ToString());
+                        lblError.Text = "Your password has expired, please change your password now.";
+                        lblError.ForeColor = System.Drawing.Color.Red;
+                        btn_login.Visible = false;
+                        btn_changePassword.Visible = true;
                     }
-                    finally { }
-
                 }
                 else
                 {
@@ -255,5 +267,45 @@ namespace ASAssignment
             string email = HttpUtility.HtmlEncode(tb_email.Text.ToString().Trim());
             Response.Redirect("RecoverAccount.aspx?email=" + email, false);
         }
+        protected int timeDiff(string email)
+        {
+            DateTime resetTime = new DateTime();
+            TimeSpan diff = new TimeSpan();
+            SqlConnection conn = new SqlConnection(connectionString);
+            string sqlq = "select pwResetTime FROM user_info WHERE Email=@Email";
+            SqlCommand command = new SqlCommand(sqlq, conn);
+            command.Parameters.AddWithValue("@Email", email);
+            try
+            {
+                conn.Open();
+                using (SqlDataReader read = command.ExecuteReader())
+                {
+                    while (read.Read())
+                    {
+                        if (read["pwResetTime"] != null)
+                        {
+                            if (read["pwResetTime"] != DBNull.Value)
+                            {
+                                resetTime = Convert.ToDateTime(read["pwResetTime"].ToString());
+                                diff = resetTime.Subtract(DateTime.Now);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw new Exception(ex.ToString());
+            }
+            finally { conn.Close(); }
+            return diff.Minutes;
+
+        }
+
+        protected void btn_changePassword_Click(object sender, EventArgs e)
+        {
+            Response.Redirect("ChangePassword.aspx?email=" + HttpUtility.HtmlEncode(tb_email.Text), false);
+        }
     }
-    }
+}

@@ -24,128 +24,158 @@ namespace ASAssignment
             {
                 email = Request.QueryString["email"];
             }
-            if (Request.QueryString["error"] == "error")
-            {
-                lblMessage.Text = "Password not valid. Please try again.";
-                lblMessage.ForeColor = System.Drawing.Color.Red;
-            }
+            //if (Request.QueryString["error"] == "error")
+            //{
+            //    lblMessage.Text = "Password not valid. Please try again.";
+            //    lblMessage.ForeColor = System.Drawing.Color.Red;
+            //}
             
         }
 
         protected void btn_Submit_Click(object sender, EventArgs e)
         {
-            Session["Error"] = "Password is invalid, try again";
-            string pword = HttpUtility.HtmlEncode(tbCurrPassword.Text.ToString().Trim());
-            string newpword = HttpUtility.HtmlEncode(tbNewPassword.Text.ToString().Trim());
-            SHA512Managed hashh = new SHA512Managed();
-            string dbh = getDBH(email);
-            string dbs = getDBS(email);
+            
+
+
+                string pword = HttpUtility.HtmlEncode(tbCurrPassword.Text.ToString().Trim());
+                string newpword = HttpUtility.HtmlEncode(tbNewPassword.Text.ToString().Trim());
+                SHA512Managed hashh = new SHA512Managed();
+                string dbh = getDBH(email);
+                string dbs = getDBS(email);
 
             try
             {
                 if (dbs != null && dbs.Length > 0 && dbh != null && dbh.Length > 0)
                 {
-                    DateTime resetTime = new DateTime();
-                    int existOrNot = 1;
-                    string pwordWithSalt = pword + dbs;
-                    byte[] hashWithSalt = hashh.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
-                    string emailHash = Convert.ToBase64String(hashWithSalt);
 
 
-                    //Generate random "salt"
-                    RNGCryptoServiceProvider rngcsp = new RNGCryptoServiceProvider();
-                    byte[] saltByte = new byte[8];
+                        DateTime resetTime = new DateTime();
+                        int existOrNot = 1;
+                        string pwordWithSalt = pword + dbs;
+                        byte[] hashWithSalt = hashh.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
+                        string emailHash = Convert.ToBase64String(hashWithSalt);
 
-                    //Fills array of bytes with a cryptographically strong sequence of random values
-                    rngcsp.GetBytes(saltByte);
-                    salt = Convert.ToBase64String(saltByte);
 
-                    SHA512Managed hashing = new SHA512Managed();
+                        //Generate random "salt"
+                        RNGCryptoServiceProvider rngcsp = new RNGCryptoServiceProvider();
+                        byte[] saltByte = new byte[8];
 
-                    string newpwordWithSalt = newpword + salt;
-                    byte[] hashPlain = hashing.ComputeHash(Encoding.UTF8.GetBytes(newpword));
-                    byte[] hashingWithSalt = hashing.ComputeHash(Encoding.UTF8.GetBytes(newpwordWithSalt));
+                        //Fills array of bytes with a cryptographically strong sequence of random values
+                        rngcsp.GetBytes(saltByte);
+                        salt = Convert.ToBase64String(saltByte);
 
-                    hashFinal = Convert.ToBase64String(hashingWithSalt);
+                        SHA512Managed hashing = new SHA512Managed();
 
-                    SqlConnection connect = new SqlConnection(connectionString);
-                    string sql = "select pwResetTime FROM user_info WHERE Email=@Email";
-                    SqlCommand comm = new SqlCommand(sql, connect);
-                    comm.Parameters.AddWithValue("@Email", email);
-                    try
-                    {
-                        connect.Open();
-                        using (SqlDataReader read = comm.ExecuteReader())
+                        string newpwordWithSalt = newpword + salt;
+                        byte[] hashPlain = hashing.ComputeHash(Encoding.UTF8.GetBytes(newpword));
+                        byte[] hashingWithSalt = hashing.ComputeHash(Encoding.UTF8.GetBytes(newpwordWithSalt));
+
+                        hashFinal = Convert.ToBase64String(hashingWithSalt);
+
+                        SqlConnection connect = new SqlConnection(connectionString);
+                        string sql = "select pwResetTime FROM user_info WHERE Email=@Email";
+                        SqlCommand comm = new SqlCommand(sql, connect);
+                        comm.Parameters.AddWithValue("@Email", email);
+                        try
                         {
-                            while (read.Read())
+                            connect.Open();
+                            using (SqlDataReader read = comm.ExecuteReader())
                             {
-                                if (read["pwResetTime"] != null)
+                                while (read.Read())
                                 {
-                                    if (read["pwResetTime"] != DBNull.Value)
+                                    if (read["pwResetTime"] != null)
                                     {
-                                        resetTime = Convert.ToDateTime(read["pwResetTime"].ToString());
+                                        if (read["pwResetTime"] != DBNull.Value)
+                                        {
+                                            resetTime = Convert.ToDateTime(read["pwResetTime"].ToString());
+                                        }
+                                        else
+                                        {
+                                            existOrNot = 0;
+                                        }
                                     }
                                     else
                                     {
                                         existOrNot = 0;
                                     }
                                 }
-                                else
-                                {
-                                    existOrNot = 0;
-                                }
                             }
                         }
-                    }
-                    catch (Exception ex)
-                    {
-
-                        throw new Exception(ex.ToString());
-                    }
-                    finally { connect.Close(); }
-                    
-                    if (timeDiff(email) >= 5 || existOrNot == 0)
-                    {
-
-
-                        if (emailHash.Equals(dbh))
+                        catch (Exception ex)
                         {
-                            SqlConnection connection = new SqlConnection(connectionString);
-                            string sqlq = "UPDATE user_info SET password=@NewPassword, salt=@NewSalt,pwResetTime=@pwResetTime WHERE Email=@Email";
-                            SqlCommand command = new SqlCommand(sqlq, connection);
-                            command.Parameters.AddWithValue("@Email", email);
-                            command.Parameters.AddWithValue("@NewPassword", hashFinal);
-                            command.Parameters.AddWithValue("@NewSalt", salt);
-                            command.Parameters.AddWithValue("@pwResetTime", DateTime.Now);
-                            try
+
+                            throw new Exception(ex.ToString());
+                        }
+                        finally { connect.Close(); }
+
+                        if (timeDiff(email) * (-1) >= 5 || existOrNot == 0)
+                        {
+
+
+                            if (emailHash.Equals(dbh))
                             {
-                                //command.Connection = connection;
-                                connection.Open();
-                                command.ExecuteNonQuery();
-                                connection.Close();
-                                lblMessage.Text = "Password has been changed successfully";
-                                lblMessage.ForeColor = System.Drawing.Color.Green;
+                                lblMessage.ForeColor = System.Drawing.Color.Red;
+                                if (tbCurrPassword.Text == "")
+                                {
+                                    lblMessage.Text += "Please Fill in Current Password <br/>";
+                                }
+                                if (tbNewPassword.Text == "")
+                                {
+                                    lblMessage.Text += "Please Fill in New Password <br/>";
+                                }
+                                if (tbCfmNewPassword.Text == "")
+                                {
+                                    lblMessage.Text += "Please Fill in Confirm New Password <br/>";
+                                }
+                                if (tbNewPassword.Text == tbCurrPassword.Text)
+                                {
+                                    lblMessage.Text += "Old password cannot be same as new password <br/>";
+                                }
+                                if (tbNewPassword.Text != tbCfmNewPassword.Text)
+                                {
+                                    lblMessage.Text += "New password not the same as Confirm password <br/>";
+                                }
+                                else
+                                {
+                                    SqlConnection connection = new SqlConnection(connectionString);
+                                    string sqlq = "UPDATE user_info SET password=@NewPassword, salt=@NewSalt,pwResetTime=@pwResetTime WHERE Email=@Email";
+                                    SqlCommand command = new SqlCommand(sqlq, connection);
+                                    command.Parameters.AddWithValue("@Email", email);
+                                    command.Parameters.AddWithValue("@NewPassword", hashFinal);
+                                    command.Parameters.AddWithValue("@NewSalt", salt);
+                                    command.Parameters.AddWithValue("@pwResetTime", DateTime.Now);
+                                    try
+                                    {
+                                        //command.Connection = connection;
+                                        connection.Open();
+                                        command.ExecuteNonQuery();
+                                        connection.Close();
+                                        lblMessage.Text = "Password has been changed successfully";
+                                        lblMessage.ForeColor = System.Drawing.Color.Green;
+                                    }
+                                    catch (SqlException ex)
+                                    {
+
+                                        lblMessage.Text = "Something went wrong, please try again.";
+                                    }
+
+
+                                }
                             }
-                            catch (SqlException ex)
+                            else
                             {
-
-                                lblMessage.Text = "Something went wrong, please try again.";
+                                lblMessage.Text = "Password not valid. Please try again.";
+                                lblMessage.ForeColor = System.Drawing.Color.Red;
                             }
-
-
                         }
                         else
                         {
-                            Response.Redirect("ChangePassword.aspx?error=error", false);
+                            lblMessage.Text = "You have changed password recently, please try again in " + timeDiff(email) * (-1) + " minutes";
+                            lblMessage.ForeColor = System.Drawing.Color.Red;
                         }
-                    }
-                    else
-                    {
-                        lblMessage.Text = "You have changed password recently, please try again in " + timeDiff(email).ToString() + "minutes";
-                        lblMessage.ForeColor = System.Drawing.Color.Red;
-                    }
+                    
+
                 }
-                
             }
 
             catch (Exception ex)
@@ -154,6 +184,7 @@ namespace ASAssignment
                 throw new Exception(ex.ToString());
             }
             finally { }
+            
 
         }
 
@@ -229,7 +260,7 @@ namespace ASAssignment
             Response.Redirect("Login.aspx", false);
         }
 
-        protected double timeDiff(string email)
+        protected int timeDiff(string email)
         {
             DateTime resetTime = new DateTime();
             TimeSpan diff = new TimeSpan();
@@ -249,7 +280,7 @@ namespace ASAssignment
                             if (read["pwResetTime"] != DBNull.Value)
                             {
                                 resetTime = Convert.ToDateTime(read["pwResetTime"].ToString());
-                                diff = DateTime.Now.Subtract(resetTime);
+                                diff = resetTime.Subtract(DateTime.Now);
                             }
                         }
                     }
@@ -261,7 +292,7 @@ namespace ASAssignment
                 throw new Exception(ex.ToString());
             }
             finally { conn.Close(); }
-            return diff.TotalMinutes;
+            return diff.Minutes;
 
         }
     }

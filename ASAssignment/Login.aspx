@@ -43,6 +43,8 @@
         
         <asp:Button ID="btn_Recover" runat="server" CssClass="auto-style4" Visible="false" Text="Recover account" OnClick="btn_Recover_Click" />
         
+        <asp:Button ID="btn_changePassword" runat="server" CssClass="auto-style4" Visible="false" Text="Change Password" OnClick="btn_changePassword_Click" />
+        
         <br />
         <asp:Label ID="lblError" runat="server"></asp:Label>
     </form>

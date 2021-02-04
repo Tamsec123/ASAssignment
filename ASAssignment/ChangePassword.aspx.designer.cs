@@ -42,6 +42,24 @@ namespace ASAssignment
         protected global::System.Web.UI.WebControls.TextBox tbNewPassword;
 
         /// <summary>
+        /// lbl_pwdchecker control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Label lbl_pwdchecker;
+
+        /// <summary>
+        /// tbCfmNewPassword control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox tbCfmNewPassword;
+
+        /// <summary>
         /// lblMessage control.
         /// </summary>
         /// <remarks>
