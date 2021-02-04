@@ -37,11 +37,11 @@ namespace ASAssignment
             
 
 
-                string pword = HttpUtility.HtmlEncode(tbCurrPassword.Text.ToString().Trim());
-                string newpword = HttpUtility.HtmlEncode(tbNewPassword.Text.ToString().Trim());
-                SHA512Managed hashh = new SHA512Managed();
-                string dbh = getDBH(email);
-                string dbs = getDBS(email);
+            string pword = HttpUtility.HtmlEncode(tbCurrPassword.Text.ToString().Trim());
+            string newpword = HttpUtility.HtmlEncode(tbNewPassword.Text.ToString().Trim());
+            SHA512Managed hashh = new SHA512Managed();
+            string dbh = getDBH(email);
+            string dbs = getDBS(email);
 
             try
             {
@@ -108,7 +108,7 @@ namespace ASAssignment
                         }
                         finally { connect.Close(); }
 
-                        if (timeDiff(email) * (-1) >= 5 || existOrNot == 0)
+                        if (timeDiff(email) >= 5 || existOrNot == 0)
                         {
 
 
@@ -170,7 +170,7 @@ namespace ASAssignment
                         }
                         else
                         {
-                            lblMessage.Text = "You have changed password recently, please try again in " + timeDiff(email) * (-1) + " minutes";
+                            lblMessage.Text = "You have changed password recently, please try again in " + (5 - timeDiff(email)) + " minutes";
                             lblMessage.ForeColor = System.Drawing.Color.Red;
                         }
                     
@@ -280,7 +280,7 @@ namespace ASAssignment
                             if (read["pwResetTime"] != DBNull.Value)
                             {
                                 resetTime = Convert.ToDateTime(read["pwResetTime"].ToString());
-                                diff = resetTime.Subtract(DateTime.Now);
+                                diff = DateTime.Now.Subtract(resetTime);
                             }
                         }
                     }

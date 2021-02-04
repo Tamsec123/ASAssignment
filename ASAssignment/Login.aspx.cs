@@ -77,7 +77,7 @@ namespace ASAssignment
                 Session["Error"] = "Email or password is invalid, try again";
                 if (statCheck(email) == "1")
                 {
-                    if (timeDiff(email) * (-1) < 15)
+                    if (timeDiff(email) < 15)
                     {
 
 
@@ -287,7 +287,7 @@ namespace ASAssignment
                             if (read["pwResetTime"] != DBNull.Value)
                             {
                                 resetTime = Convert.ToDateTime(read["pwResetTime"].ToString());
-                                diff = resetTime.Subtract(DateTime.Now);
+                                diff = DateTime.Now.Subtract(resetTime);
                             }
                         }
                     }
