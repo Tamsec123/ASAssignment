@@ -11,6 +11,9 @@ using System.Data.SqlClient;
 using System.Security.Cryptography;
 using System.Text;
 using System.Globalization;
+using System.Net;
+using System.IO;
+using System.Web.Script.Serialization;
 
 namespace ASAssignment
 {
@@ -29,80 +32,85 @@ namespace ASAssignment
 
         protected void btn_submit_Click(object sender, EventArgs e)
         {
-            lbl_msg.Text = "";
-            bool rs = true;
-            rs = DateTime.TryParse(tbExpDate.Text, out expDate);
+            if (CaptchaValidation())
+            {
 
 
-            if (tbFirstName.Text == "")
-            {
-                lbl_msg.Text += "First name cannot be empty <br/>";
-            }
-            if (tbLastName.Text == "")
-            {
-                lbl_msg.Text += "Last name cannot be empty <br/>";
-            }
-            if (tbCardNumber.Text == "" || tbCardNumber.Text.Length > 16 || tbCardNumber.Text.Length < 16)
-            {
-                lbl_msg.Text += "Card number is invalid <br/>";
-            }
-            if (tbExpDate.Text == "" || rs == false)
-            {
-                lbl_msg.Text += "Expiry date is invalid <br/>";
-            }
-            if (tbCVV.Text == "" || tbCVV.Text.Length > 3 || tbCVV.Text.Length < 3)
-            {
-                lbl_msg.Text += "CVV is invalid <br/>";
-            }
-            if (tbEmail.Text == "")
-            {
-                lbl_msg.Text += "Email cannot be empty <br/>";
-            }
-            if (tbPassword.Text == "")
-            {
-                lbl_msg.Text += "Password cannot be empty <br/>";
-            }
-            if (tbPasswordCfm.Text == "")
-            {
-                lbl_msg.Text += "Confirm Password Cannot be empty <br/>";
-            }
-            if (tbPassword.Text != tbPasswordCfm.Text)
-            {
-                lbl_msg.Text += "Password and Confirm Password are not the same <br/>";
-            }
-            if (tbPasswordCfm.Text == "")
-            {
-                lbl_msg.Text += "Password Confirmation cannot be empty <br/>";
-            }
-            if (tbDoB.Text == "")
-            {
-                lbl_msg.Text += "Date of birth cannot be empty <br/>";
-            }
-            else
-            {
-                dt = Convert.ToDateTime(DateTime.ParseExact(tbDoB.Text.ToString(), "MM/dd/yyyy", CultureInfo.InvariantCulture));
-                string pword = tbPassword.Text.ToString().Trim();
-
-                //Generate random "salt"
-                RNGCryptoServiceProvider rngcsp = new RNGCryptoServiceProvider();
-                byte[] saltByte = new byte[8];
-
-                //Fills array of bytes with a cryptographically strong sequence of random values
-                rngcsp.GetBytes(saltByte);
-                salt = Convert.ToBase64String(saltByte);
-
-                SHA512Managed hashing = new SHA512Managed();
-
-                string pwordWithSalt = pword + salt;
-                byte[] hashPlain = hashing.ComputeHash(Encoding.UTF8.GetBytes(pword));
-                byte[] hashWithSalt = hashing.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
-
-                hashFinal = Convert.ToBase64String(hashWithSalt);
+                lbl_msg.Text = "";
+                bool rs = true;
+                rs = DateTime.TryParse(tbExpDate.Text, out expDate);
 
 
+                if (tbFirstName.Text == "")
+                {
+                    lbl_msg.Text += "First name cannot be empty <br/>";
+                }
+                if (tbLastName.Text == "")
+                {
+                    lbl_msg.Text += "Last name cannot be empty <br/>";
+                }
+                if (tbCardNumber.Text == "" || tbCardNumber.Text.Length > 16 || tbCardNumber.Text.Length < 16)
+                {
+                    lbl_msg.Text += "Card number is invalid <br/>";
+                }
+                if (tbExpDate.Text == "" || rs == false || tbExpDate.Text.Length > 5)
+                {
+                    lbl_msg.Text += "Expiry date is invalid <br/>";
+                }
+                if (tbCVV.Text == "" || tbCVV.Text.Length > 3 || tbCVV.Text.Length < 3)
+                {
+                    lbl_msg.Text += "CVV is invalid <br/>";
+                }
+                if (tbEmail.Text == "")
+                {
+                    lbl_msg.Text += "Email cannot be empty <br/>";
+                }
+                if (tbPassword.Text == "")
+                {
+                    lbl_msg.Text += "Password cannot be empty <br/>";
+                }
+                if (tbPasswordCfm.Text == "")
+                {
+                    lbl_msg.Text += "Confirm Password Cannot be empty <br/>";
+                }
+                if (tbPassword.Text != tbPasswordCfm.Text)
+                {
+                    lbl_msg.Text += "Password and Confirm Password are not the same <br/>";
+                }
+                if (tbPasswordCfm.Text == "")
+                {
+                    lbl_msg.Text += "Password Confirmation cannot be empty <br/>";
+                }
+                if (tbDoB.Text == "")
+                {
+                    lbl_msg.Text += "Date of birth cannot be empty <br/>";
+                }
+                else
+                {
+                    dt = Convert.ToDateTime(DateTime.ParseExact(tbDoB.Text.ToString(), "MM/dd/yyyy", CultureInfo.InvariantCulture));
+                    string pword = tbPassword.Text.ToString().Trim();
 
-                createUser();
-                Response.Redirect("Login.aspx", false);
+                    //Generate random "salt"
+                    RNGCryptoServiceProvider rngcsp = new RNGCryptoServiceProvider();
+                    byte[] saltByte = new byte[8];
+
+                    //Fills array of bytes with a cryptographically strong sequence of random values
+                    rngcsp.GetBytes(saltByte);
+                    salt = Convert.ToBase64String(saltByte);
+
+                    SHA512Managed hashing = new SHA512Managed();
+
+                    string pwordWithSalt = pword + salt;
+                    byte[] hashPlain = hashing.ComputeHash(Encoding.UTF8.GetBytes(pword));
+                    byte[] hashWithSalt = hashing.ComputeHash(Encoding.UTF8.GetBytes(pwordWithSalt));
+
+                    hashFinal = Convert.ToBase64String(hashWithSalt);
+
+
+
+                    createUser();
+                    Response.Redirect("Login.aspx", false);
+                }
             }
         }
 
@@ -229,6 +237,44 @@ namespace ASAssignment
                 return;
             }
             lbl_pwdchecker.ForeColor = Color.Green;
+        }
+
+        public class MyObject
+        {
+            public string success { get; set; }
+            public List<String> ErrorMessage { get; set; }
+        }
+
+        public bool CaptchaValidation()
+        {
+            bool result = true;
+
+            string captchaResponse = Request.Form["g-recaptcha-response"];
+
+            HttpWebRequest req = (HttpWebRequest)WebRequest.Create("https://www.google.com/recaptcha/api/siteverify?secret=6LfTIkgaAAAAACo87RcpBEP0Z4cAxQbJIseowih0" + "&response=" + captchaResponse);
+
+            try
+            {
+                using (WebResponse Responses = req.GetResponse())
+                {
+                    using (StreamReader streamRead = new StreamReader(Responses.GetResponseStream()))
+                    {
+                        string responseJson = streamRead.ReadToEnd();
+
+                        JavaScriptSerializer jss = new JavaScriptSerializer();
+
+                        MyObject jsonObject = jss.Deserialize<MyObject>(responseJson);
+
+                        result = Convert.ToBoolean(jsonObject.success);
+                    }
+                }
+                return result;
+            }
+            catch (WebException ex)
+            {
+                throw ex;
+            }
+
         }
     }
 }

@@ -28,6 +28,7 @@
             margin-left: 75px;
         }
     </style>
+    <script src="https://www.google.com/recaptcha/api.js?render=6LfTIkgaAAAAAJ-jIRWCvlcGgjD_q6EQIK3_jaIv"></script>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -38,6 +39,7 @@
             <br />
             First Name:&nbsp;&nbsp;&nbsp;&nbsp;
             <asp:TextBox ID="tbFirstName" runat="server" CssClass="auto-style5"></asp:TextBox>
+            <input type="hidden" id="g-recaptcha-response" name="g-recaptcha-response" />
         </div>
         <p>
             Last Name:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <asp:TextBox ID="tbLastName" runat="server" CssClass="auto-style7"></asp:TextBox>
@@ -87,6 +89,13 @@
             &nbsp;</p>
         
     </form>
+    <script>
+        grecaptcha.ready(function () {
+            grecaptcha.execute('6LfTIkgaAAAAAJ-jIRWCvlcGgjD_q6EQIK3_jaIv', { action: 'Login' }).then(function (token) {
+                document.getElementById("g-recaptcha-response").value = token;
+            });
+        });
+    </script>
     
 </body>
     <script type="text/javascript">
