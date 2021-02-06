@@ -21,7 +21,7 @@
             margin-left: 108px;
         }
     </style>
-    <script src="https://www.google.com/recaptcha/api.js?render=6LfTIkgaAAAAAJ-jIRWCvlcGgjD_q6EQIK3_jaIv"></script>
+    <script src="https://www.google.com/recaptcha/api.js?render="></script>
 </head>
 <body>
     <form id="form1" runat="server">
@@ -50,7 +50,7 @@
     </form>
     <script>
         grecaptcha.ready(function () {
-            grecaptcha.execute('6LfTIkgaAAAAAJ-jIRWCvlcGgjD_q6EQIK3_jaIv', { action: 'Login' }).then(function (token) {
+            grecaptcha.execute('', { action: 'Login' }).then(function (token) {
                 document.getElementById("g-recaptcha-response").value = token;
             });
         });
